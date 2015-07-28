@@ -1,0 +1,20 @@
+package mop;
+
+import java.io.*;
+import java.util.*;
+import notmop.SoccerMotorMotion;
+MotorsInSync(SoccerMotorMotion motors) {
+
+	float prevLeftMotorPos = 0;
+
+	float prevRightMotorPos = 0;
+	event testEvent(){
+		System.out.println("testing");
+	}
+	ltl:  testEvent
+
+	@violation
+	{
+		System.out.println("motors out of sync");
+	}
+}
