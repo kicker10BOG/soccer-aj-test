@@ -18,57 +18,65 @@ public class SoccerMotorMotion {
 		 System.out.println("->left Start: "+motors.getLeftMotorPos());
 		 System.out.println("->right Start: "+motors.getRightMotorPos());
 		 motors.goForward(20);
+		 motors.stop();
 		 System.out.println("-->left end: "+motors.getLeftMotorPos());
 		 System.out.println("-->right end: "+motors.getRightMotorPos());
+		 
+		 System.out.println();
 
 		 System.out.println("goBackward(10)");
 		 System.out.println("->left Start: "+motors.getLeftMotorPos());
 		 System.out.println("->right Start: "+motors.getRightMotorPos());
 		 motors.goBackward(10);
+		 motors.stop();
 		 System.out.println("-->left end: "+motors.getLeftMotorPos());
 		 System.out.println("-->right end: "+motors.getRightMotorPos());
+		 
+		 System.out.println();
 
 		 System.out.println("goForwardNoSync(30)");
 		 System.out.println("->left Start: "+motors.getLeftMotorPos());
 		 System.out.println("->right Start: "+motors.getRightMotorPos());
 		 motors.goForwardNoSync(30);
+		 motors.stop();
 		 System.out.println("-->left end: "+motors.getLeftMotorPos());
 		 System.out.println("-->right end: "+motors.getRightMotorPos());
+		 
+		 System.out.println();
 
 		 System.out.println("goBackwardNoSync(10)");
 		 System.out.println("->left Start: "+motors.getLeftMotorPos());
 		 System.out.println("->right Start: "+motors.getRightMotorPos());
 		 motors.goBackwardNoSync(10);
+		 motors.stop();
+		 motors.stop();
 		 System.out.println("-->left end: "+motors.getLeftMotorPos());
 		 System.out.println("-->right end: "+motors.getRightMotorPos());
 
 	}
 	
-	public float[] goForward(int speed) {
+	public void stop() {
+		// stop motors
+	}
+	
+	public void goForward(int speed) {
 		leftMotorPos += speed;
 		rightMotorPos += speed;
-		float[] vals = {leftMotorPos, rightMotorPos};
-		return vals;
 	}
-	public float[] goBackward(int speed) {
+
+	public void goBackward(int speed) {
 		leftMotorPos -= speed;
 		rightMotorPos -= speed;
-		float[] vals = {leftMotorPos, rightMotorPos};
-		return vals;
 	}
 	
-	public float[] goForwardNoSync(int speed) {
+	public void goForwardNoSync(int speed) {
 		leftMotorPos += speed;
 		rightMotorPos += speed+10.0;
-		float[] vals = {leftMotorPos, rightMotorPos};
-		return vals;
 	}
 	
-	public float[] goBackwardNoSync(int speed) {
+	public void goBackwardNoSync(int speed) {
 		leftMotorPos -= speed;
 		rightMotorPos -= speed+10.0;
-		float[] vals = {leftMotorPos, rightMotorPos};
-		return vals;
 	}
 	
 	public float getLeftMotorPos() {

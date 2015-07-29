@@ -17,7 +17,6 @@ import com.runtimeverification.rvmonitor.java.rt.tablebase.IMonitor;
 import com.runtimeverification.rvmonitor.java.rt.tablebase.DisableHolder;
 import com.runtimeverification.rvmonitor.java.rt.tablebase.TerminatedMonitorCleaner;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.aspectj.lang.*;
 
 final class MotorsInSyncMonitor_Set extends com.runtimeverification.rvmonitor.java.rt.tablebase.AbstractMonitorSet<MotorsInSyncMonitor> {
 
@@ -258,7 +257,7 @@ class MotorsInSyncMonitor extends com.runtimeverification.rvmonitor.java.rt.tabl
 
 }
 
-class MotorsInSyncRuntimeMonitor implements com.runtimeverification.rvmonitor.java.rt.RVMObject {
+public final class MotorsInSyncRuntimeMonitor implements com.runtimeverification.rvmonitor.java.rt.RVMObject {
 	private static com.runtimeverification.rvmonitor.java.rt.map.RVMMapManager MotorsInSyncMapManager;
 	static {
 		MotorsInSyncMapManager = new com.runtimeverification.rvmonitor.java.rt.map.RVMMapManager();
@@ -437,33 +436,6 @@ class MotorsInSyncRuntimeMonitor implements com.runtimeverification.rvmonitor.ja
 		}
 
 		MotorsInSync_RVMLock.unlock();
-	}
-
-}
-
-
-public aspect MotorsInSyncMonitorAspect implements com.runtimeverification.rvmonitor.java.rt.RVMObject {
-	public MotorsInSyncMonitorAspect(){
-	}
-
-	// Declarations for the Lock
-	static ReentrantLock MotorsInSync_MOPLock = new ReentrantLock();
-	static Condition MotorsInSync_MOPLock_cond = MotorsInSync_MOPLock.newCondition();
-
-	pointcut MOP_CommonPointCut() : !within(com.runtimeverification.rvmonitor.java.rt.RVMObject+) && !adviceexecution()&& BaseAspect.notwithin();
-	pointcut MotorsInSync_checkMotorsBefore(SoccerMotorMotion motors) : (call(* SoccerMotorMotion.go*(*)) && target(motors)) && MOP_CommonPointCut();
-	before (SoccerMotorMotion motors) : MotorsInSync_checkMotorsBefore(motors) {
-		MotorsInSyncRuntimeMonitor.MotorsInSync_checkMotorsBeforeEvent(motors);
-	}
-
-	pointcut MotorsInSync_motorsInSync(SoccerMotorMotion motors) : (call(* SoccerMotorMotion.go*(*)) && target(motors)) && MOP_CommonPointCut();
-	after (SoccerMotorMotion motors) : MotorsInSync_motorsInSync(motors) {
-		MotorsInSyncRuntimeMonitor.MotorsInSync_motorsInSyncEvent(motors);
-	}
-
-	pointcut MotorsInSync_stopInSync(SoccerMotorMotion motors) : (call(* SoccerMotorMotion.stop()) && target(motors)) && MOP_CommonPointCut();
-	after (SoccerMotorMotion motors) : MotorsInSync_stopInSync(motors) {
-		MotorsInSyncRuntimeMonitor.MotorsInSync_stopInSyncEvent(motors);
 	}
 
 }
