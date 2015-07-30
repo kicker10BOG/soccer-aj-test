@@ -9,7 +9,7 @@ MotorsInSync(SoccerMotorMotion motors) {
 
 	float prevRightMotorPos = 0;
 	event checkMotorsBefore(SoccerMotorMotion motors){
-		System.out.println("go* starting!");
+		System.out.println("go* called!");
 		this.prevLeftMotorPos = motors.getLeftMotorPos();
 		this.prevRightMotorPos = motors.getRightMotorPos();
 	}
@@ -18,13 +18,13 @@ MotorsInSync(SoccerMotorMotion motors) {
 			return false;
 		}
 		{
-			System.out.println("go* ending!");
+			System.out.println("stopped in sync!");
 			System.out.println("diff in left: " + Math.abs(motors.getLeftMotorPos() - this.prevLeftMotorPos));
 			System.out.println("diff in right: " + Math.abs(motors.getRightMotorPos() - this.prevRightMotorPos));
 		}
 	}
 	event stopInSync(SoccerMotorMotion motors){
-		System.out.println("stop Worked!");
+		System.out.println("stop called!");
 	}
 	ltl:  [](stopInSync => (*) checkMotorsBefore)
 

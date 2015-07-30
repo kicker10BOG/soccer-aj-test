@@ -45,6 +45,26 @@ final class MotorsInSyncMonitor_Set extends com.runtimeverification.rvmonitor.ja
 		}
 		size = numAlive;
 	}
+	final void event_motorsOutOfSync(SoccerMotorMotion motors) {
+		int numAlive = 0 ;
+		for(int i = 0; i < this.size; i++){
+			MotorsInSyncMonitor monitor = this.elements[i];
+			if(!monitor.isTerminated()){
+				elements[numAlive] = monitor;
+				numAlive++;
+
+				final MotorsInSyncMonitor monitorfinalMonitor = monitor;
+				monitor.Prop_1_event_motorsOutOfSync(motors);
+				if(monitorfinalMonitor.MotorsInSyncMonitor_Prop_1_Category_violation) {
+					monitorfinalMonitor.Prop_1_handler_violation();
+				}
+			}
+		}
+		for(int i = numAlive; i < this.size; i++){
+			this.elements[i] = null;
+		}
+		size = numAlive;
+	}
 	final void event_motorsInSync(SoccerMotorMotion motors) {
 		int numAlive = 0 ;
 		for(int i = 0; i < this.size; i++){
@@ -65,7 +85,7 @@ final class MotorsInSyncMonitor_Set extends com.runtimeverification.rvmonitor.ja
 		}
 		size = numAlive;
 	}
-	final void event_stopInSync(SoccerMotorMotion motors) {
+	final void event_stop(SoccerMotorMotion motors) {
 		int numAlive = 0 ;
 		for(int i = 0; i < this.size; i++){
 			MotorsInSyncMonitor monitor = this.elements[i];
@@ -74,7 +94,7 @@ final class MotorsInSyncMonitor_Set extends com.runtimeverification.rvmonitor.ja
 				numAlive++;
 
 				final MotorsInSyncMonitor monitorfinalMonitor = monitor;
-				monitor.Prop_1_event_stopInSync(motors);
+				monitor.Prop_1_event_stop(motors);
 				if(monitorfinalMonitor.MotorsInSyncMonitor_Prop_1_Category_violation) {
 					monitorfinalMonitor.Prop_1_handler_violation();
 				}
@@ -102,9 +122,12 @@ class MotorsInSyncMonitor extends com.runtimeverification.rvmonitor.java.rt.tabl
 
 	float prevRightMotorPos = 0;
 
-	static final int Prop_1_transition_checkMotorsBefore[] = {1, 1, 3, 3};;
-	static final int Prop_1_transition_motorsInSync[] = {0, 0, 3, 3};;
-	static final int Prop_1_transition_stopInSync[] = {2, 0, 3, 3};;
+	Boolean go = false;
+
+	static final int Prop_1_transition_checkMotorsBefore[] = {3, 3, 4, 3, 4};;
+	static final int Prop_1_transition_motorsOutOfSync[] = {0, 0, 4, 0, 4};;
+	static final int Prop_1_transition_motorsInSync[] = {0, 1, 4, 1, 4};;
+	static final int Prop_1_transition_stop[] = {2, 3, 4, 2, 4};;
 
 	volatile boolean MotorsInSyncMonitor_Prop_1_Category_violation = false;
 
@@ -122,13 +145,13 @@ class MotorsInSyncMonitor extends com.runtimeverification.rvmonitor.java.rt.tabl
 		return this.getLastEvent(this.pairValue.get() ) ;
 	}
 	private final int getState(int pairValue) {
-		return (pairValue & 3) ;
+		return (pairValue & 7) ;
 	}
 	private final int getLastEvent(int pairValue) {
-		return (pairValue >> 2) ;
+		return (pairValue >> 3) ;
 	}
 	private final int calculatePairValue(int lastEvent, int state) {
-		return (((lastEvent + 1) << 2) | state) ;
+		return (((lastEvent + 1) << 3) | state) ;
 	}
 
 	private final int handleEvent(int eventId, int[] table) {
@@ -147,9 +170,10 @@ class MotorsInSyncMonitor extends com.runtimeverification.rvmonitor.java.rt.tabl
 
 	final boolean Prop_1_event_checkMotorsBefore(SoccerMotorMotion motors) {
 		{
-			System.out.println("go* starting!");
+			System.out.println("go* called!");
 			this.prevLeftMotorPos = motors.getLeftMotorPos();
 			this.prevRightMotorPos = motors.getRightMotorPos();
+			this.go = true;
 		}
 
 		int nextstate = this.handleEvent(0, Prop_1_transition_checkMotorsBefore) ;
@@ -158,30 +182,47 @@ class MotorsInSyncMonitor extends com.runtimeverification.rvmonitor.java.rt.tabl
 		return true;
 	}
 
-	final boolean Prop_1_event_motorsInSync(SoccerMotorMotion motors) {
+	final boolean Prop_1_event_motorsOutOfSync(SoccerMotorMotion motors) {
 		{
-			if ( ! (Math.abs(Math.abs(motors.getLeftMotorPos() - this.prevLeftMotorPos) - Math.abs(motors.getRightMotorPos() - this.prevRightMotorPos)) < motors.getSyncThresh()) ) {
+			if ( ! (Math.abs(Math.abs(motors.getLeftMotorPos() - this.prevLeftMotorPos) - Math.abs(motors.getRightMotorPos() - this.prevRightMotorPos)) > motors.getSyncThresh() || !this.go) ) {
 				return false;
 			}
 			{
-				System.out.println("go* ending!");
-				System.out.println("diff in left: " + Math.abs(motors.getLeftMotorPos() - this.prevLeftMotorPos));
-				System.out.println("diff in right: " + Math.abs(motors.getRightMotorPos() - this.prevRightMotorPos));
+				System.out.println("stopped out of sync!");
 			}
 		}
 
-		int nextstate = this.handleEvent(1, Prop_1_transition_motorsInSync) ;
+		int nextstate = this.handleEvent(1, Prop_1_transition_motorsOutOfSync) ;
 		this.MotorsInSyncMonitor_Prop_1_Category_violation = nextstate == 2;
 
 		return true;
 	}
 
-	final boolean Prop_1_event_stopInSync(SoccerMotorMotion motors) {
+	final boolean Prop_1_event_motorsInSync(SoccerMotorMotion motors) {
 		{
-			System.out.println("stop Worked!");
+			if ( ! (Math.abs(Math.abs(motors.getLeftMotorPos() - this.prevLeftMotorPos) - Math.abs(motors.getRightMotorPos() - this.prevRightMotorPos)) <= motors.getSyncThresh() && this.go) ) {
+				return false;
+			}
+			{
+				System.out.println("stopped in sync!");
+			}
 		}
 
-		int nextstate = this.handleEvent(2, Prop_1_transition_stopInSync) ;
+		int nextstate = this.handleEvent(2, Prop_1_transition_motorsInSync) ;
+		this.MotorsInSyncMonitor_Prop_1_Category_violation = nextstate == 2;
+
+		return true;
+	}
+
+	final boolean Prop_1_event_stop(SoccerMotorMotion motors) {
+		{
+			System.out.println("stop called!");
+			System.out.println("diff in left: " + Math.abs(motors.getLeftMotorPos() - this.prevLeftMotorPos) + " at " + motors.getLeftMotorPos());
+			System.out.println("diff in right: " + Math.abs(motors.getRightMotorPos() - this.prevRightMotorPos) + " at " + motors.getRightMotorPos());
+			this.go = false;
+		}
+
+		int nextstate = this.handleEvent(3, Prop_1_transition_stop) ;
 		this.MotorsInSyncMonitor_Prop_1_Category_violation = nextstate == 2;
 
 		return true;
@@ -190,6 +231,7 @@ class MotorsInSyncMonitor extends com.runtimeverification.rvmonitor.java.rt.tabl
 	final void Prop_1_handler_violation (){
 		{
 			System.out.println("motors out of sync at line" + com.runtimeverification.rvmonitor.java.rt.ViolationRecorder.getLineOfCode());
+			this.reset();
 		}
 
 	}
@@ -227,7 +269,7 @@ class MotorsInSyncMonitor extends com.runtimeverification.rvmonitor.java.rt.tabl
 			break;
 
 			case 1:
-			//motorsInSync
+			//motorsOutOfSync
 			//alive_motors
 			if(!(alive_parameters_0)){
 				RVM_terminated = true;
@@ -236,7 +278,16 @@ class MotorsInSyncMonitor extends com.runtimeverification.rvmonitor.java.rt.tabl
 			break;
 
 			case 2:
-			//stopInSync
+			//motorsInSync
+			//alive_motors
+			if(!(alive_parameters_0)){
+				RVM_terminated = true;
+				return;
+			}
+			break;
+
+			case 3:
+			//stop
 			//alive_motors
 			if(!(alive_parameters_0)){
 				RVM_terminated = true;
@@ -249,11 +300,11 @@ class MotorsInSyncMonitor extends com.runtimeverification.rvmonitor.java.rt.tabl
 	}
 
 	public static int getNumberOfEvents() {
-		return 3;
+		return 4;
 	}
 
 	public static int getNumberOfStates() {
-		return 4;
+		return 5;
 	}
 
 }
@@ -341,6 +392,55 @@ class MotorsInSyncRuntimeMonitor implements com.runtimeverification.rvmonitor.ja
 		MotorsInSync_RVMLock.unlock();
 	}
 
+	public static final void MotorsInSync_motorsOutOfSyncEvent(SoccerMotorMotion motors) {
+		MotorsInSync_activated = true;
+		while (!MotorsInSync_RVMLock.tryLock()) {
+			Thread.yield();
+		}
+
+		CachedWeakReference wr_motors = null;
+		MapOfMonitor<MotorsInSyncMonitor> matchedLastMap = null;
+		MotorsInSyncMonitor matchedEntry = null;
+		boolean cachehit = false;
+		if ((motors == MotorsInSync_motors_Map_cachekey_motors) ) {
+			matchedEntry = MotorsInSync_motors_Map_cachevalue;
+			cachehit = true;
+		}
+		else {
+			wr_motors = new CachedWeakReference(motors) ;
+			{
+				// FindOrCreateEntry
+				MapOfMonitor<MotorsInSyncMonitor> itmdMap = MotorsInSync_motors_Map;
+				matchedLastMap = itmdMap;
+				MotorsInSyncMonitor node_motors = MotorsInSync_motors_Map.getNodeEquivalent(wr_motors) ;
+				matchedEntry = node_motors;
+			}
+		}
+		// D(X) main:1
+		if ((matchedEntry == null) ) {
+			if ((wr_motors == null) ) {
+				wr_motors = new CachedWeakReference(motors) ;
+			}
+			// D(X) main:4
+			MotorsInSyncMonitor created = new MotorsInSyncMonitor() ;
+			matchedEntry = created;
+			matchedLastMap.putNode(wr_motors, created) ;
+		}
+		// D(X) main:8--9
+		final MotorsInSyncMonitor matchedEntryfinalMonitor = matchedEntry;
+		matchedEntry.Prop_1_event_motorsOutOfSync(motors);
+		if(matchedEntryfinalMonitor.MotorsInSyncMonitor_Prop_1_Category_violation) {
+			matchedEntryfinalMonitor.Prop_1_handler_violation();
+		}
+
+		if ((cachehit == false) ) {
+			MotorsInSync_motors_Map_cachekey_motors = motors;
+			MotorsInSync_motors_Map_cachevalue = matchedEntry;
+		}
+
+		MotorsInSync_RVMLock.unlock();
+	}
+
 	public static final void MotorsInSync_motorsInSyncEvent(SoccerMotorMotion motors) {
 		MotorsInSync_activated = true;
 		while (!MotorsInSync_RVMLock.tryLock()) {
@@ -390,7 +490,7 @@ class MotorsInSyncRuntimeMonitor implements com.runtimeverification.rvmonitor.ja
 		MotorsInSync_RVMLock.unlock();
 	}
 
-	public static final void MotorsInSync_stopInSyncEvent(SoccerMotorMotion motors) {
+	public static final void MotorsInSync_stopEvent(SoccerMotorMotion motors) {
 		MotorsInSync_activated = true;
 		while (!MotorsInSync_RVMLock.tryLock()) {
 			Thread.yield();
@@ -426,7 +526,7 @@ class MotorsInSyncRuntimeMonitor implements com.runtimeverification.rvmonitor.ja
 		}
 		// D(X) main:8--9
 		final MotorsInSyncMonitor matchedEntryfinalMonitor = matchedEntry;
-		matchedEntry.Prop_1_event_stopInSync(motors);
+		matchedEntry.Prop_1_event_stop(motors);
 		if(matchedEntryfinalMonitor.MotorsInSyncMonitor_Prop_1_Category_violation) {
 			matchedEntryfinalMonitor.Prop_1_handler_violation();
 		}
@@ -451,19 +551,22 @@ public aspect MotorsInSyncMonitorAspect implements com.runtimeverification.rvmon
 	static Condition MotorsInSync_MOPLock_cond = MotorsInSync_MOPLock.newCondition();
 
 	pointcut MOP_CommonPointCut() : !within(com.runtimeverification.rvmonitor.java.rt.RVMObject+) && !adviceexecution()&& BaseAspect.notwithin();
+	pointcut MotorsInSync_motorsOutOfSync(SoccerMotorMotion motors) : (call(* SoccerMotorMotion.stop()) && target(motors)) && MOP_CommonPointCut();
+	before (SoccerMotorMotion motors) : MotorsInSync_motorsOutOfSync(motors) {
+		//MotorsInSync_motorsInSync
+		MotorsInSyncRuntimeMonitor.MotorsInSync_motorsInSyncEvent(motors);
+		//MotorsInSync_motorsOutOfSync
+		MotorsInSyncRuntimeMonitor.MotorsInSync_motorsOutOfSyncEvent(motors);
+	}
+
 	pointcut MotorsInSync_checkMotorsBefore(SoccerMotorMotion motors) : (call(* SoccerMotorMotion.go*(*)) && target(motors)) && MOP_CommonPointCut();
 	before (SoccerMotorMotion motors) : MotorsInSync_checkMotorsBefore(motors) {
 		MotorsInSyncRuntimeMonitor.MotorsInSync_checkMotorsBeforeEvent(motors);
 	}
 
-	pointcut MotorsInSync_motorsInSync(SoccerMotorMotion motors) : (call(* SoccerMotorMotion.go*(*)) && target(motors)) && MOP_CommonPointCut();
-	after (SoccerMotorMotion motors) : MotorsInSync_motorsInSync(motors) {
-		MotorsInSyncRuntimeMonitor.MotorsInSync_motorsInSyncEvent(motors);
-	}
-
-	pointcut MotorsInSync_stopInSync(SoccerMotorMotion motors) : (call(* SoccerMotorMotion.stop()) && target(motors)) && MOP_CommonPointCut();
-	after (SoccerMotorMotion motors) : MotorsInSync_stopInSync(motors) {
-		MotorsInSyncRuntimeMonitor.MotorsInSync_stopInSyncEvent(motors);
+	pointcut MotorsInSync_stop(SoccerMotorMotion motors) : (call(* SoccerMotorMotion.stop()) && target(motors)) && MOP_CommonPointCut();
+	after (SoccerMotorMotion motors) : MotorsInSync_stop(motors) {
+		MotorsInSyncRuntimeMonitor.MotorsInSync_stopEvent(motors);
 	}
 
 }

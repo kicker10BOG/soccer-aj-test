@@ -14,6 +14,13 @@ public class SoccerMotorMotion {
 	
 	public static void main(String[] args) {
 		 SoccerMotorMotion motors = new SoccerMotorMotion();
+		 
+		 // Test before going
+		 motors.stop();
+		 
+		 System.out.println();
+		 
+		 // Should not violate the LTL
 		 System.out.println("goForward(20)");
 		 System.out.println("->left Start: "+motors.getLeftMotorPos());
 		 System.out.println("->right Start: "+motors.getRightMotorPos());
@@ -24,16 +31,7 @@ public class SoccerMotorMotion {
 		 
 		 System.out.println();
 
-		 System.out.println("goBackward(10)");
-		 System.out.println("->left Start: "+motors.getLeftMotorPos());
-		 System.out.println("->right Start: "+motors.getRightMotorPos());
-		 motors.goBackward(10);
-		 motors.stop();
-		 System.out.println("-->left end: "+motors.getLeftMotorPos());
-		 System.out.println("-->right end: "+motors.getRightMotorPos());
-		 
-		 System.out.println();
-
+		 // Should violate the LTL
 		 System.out.println("goForwardNoSync(30)");
 		 System.out.println("->left Start: "+motors.getLeftMotorPos());
 		 System.out.println("->right Start: "+motors.getRightMotorPos());
@@ -44,14 +42,30 @@ public class SoccerMotorMotion {
 		 
 		 System.out.println();
 
+		 // Should violate the LTL
 		 System.out.println("goBackwardNoSync(10)");
 		 System.out.println("->left Start: "+motors.getLeftMotorPos());
 		 System.out.println("->right Start: "+motors.getRightMotorPos());
 		 motors.goBackwardNoSync(10);
 		 motors.stop();
+		 System.out.println("-->left end: "+motors.getLeftMotorPos());
+		 System.out.println("-->right end: "+motors.getRightMotorPos());
+		 
+		 System.out.println();
+
+		 // Should not violate the LTL
+		 System.out.println("goBackward(10)");
+		 System.out.println("->left Start: "+motors.getLeftMotorPos());
+		 System.out.println("->right Start: "+motors.getRightMotorPos());
+		 motors.goBackward(10);
 		 motors.stop();
 		 System.out.println("-->left end: "+motors.getLeftMotorPos());
 		 System.out.println("-->right end: "+motors.getRightMotorPos());
+		 
+		 System.out.println();
+		 
+		 // Test without going since stopping
+		 motors.stop();
 
 	}
 	

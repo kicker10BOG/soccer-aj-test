@@ -7,49 +7,63 @@ import notmop.SoccerMotorMotion;
 MotorsInSync(SoccerMotorMotion motors) {
 	float prevLeftMotorPos = 0;
 	float prevRightMotorPos = 0;
-	
-/*	event testEvent after() :
-			call(float[] SoccerMotorMotion.goForward(int)) 
-			{
-				System.out.println("testing");
-			}
-*/	
+	Boolean go = false;
+
 	// Get the staring positions of the motors
 	event checkMotorsBefore before(SoccerMotorMotion motors) : 
 		call(* SoccerMotorMotion.go*(*))
 			&& target(motors) 
 			{
-				System.out.println("go* starting!");
+				System.out.println("go* called!");
 				this.prevLeftMotorPos = motors.getLeftMotorPos();
 				this.prevRightMotorPos = motors.getRightMotorPos();
+				this.go = true;
 			}
 			
 	// compare positions after moving
-	event motorsInSync after(SoccerMotorMotion motors) : 
-			call(* SoccerMotorMotion.go*(*))
+	event motorsOutOfSync before(SoccerMotorMotion motors) : 
+			call(* SoccerMotorMotion.stop())
 			&& target(motors) 
 			&& condition(Math.abs(
 						Math.abs(motors.getLeftMotorPos() - this.prevLeftMotorPos) 
 						- Math.abs(motors.getRightMotorPos() - this.prevRightMotorPos)) 
-						< motors.getSyncThresh()) 
+						> motors.getSyncThresh()
+						|| !this.go) 
 			{
-				System.out.println("go* ending!");
-				System.out.println("diff in left: " + Math.abs(motors.getLeftMotorPos() - this.prevLeftMotorPos));
-				System.out.println("diff in right: " + Math.abs(motors.getRightMotorPos() - this.prevRightMotorPos));
+				System.out.println("stopped out of sync!");
+			}
+			
+		// compare positions after moving
+	event motorsInSync before(SoccerMotorMotion motors) : 
+			call(* SoccerMotorMotion.stop())
+			&& target(motors) 
+			&& condition(Math.abs(
+						Math.abs(motors.getLeftMotorPos() - this.prevLeftMotorPos) 
+						- Math.abs(motors.getRightMotorPos() - this.prevRightMotorPos)) 
+						<= motors.getSyncThresh()
+						&& this.go) 
+			{
+				System.out.println("stopped in sync!");
 			}
 	
-	event stopInSync after(SoccerMotorMotion motors) : 
+	event stop after(SoccerMotorMotion motors) : 
 			call(* SoccerMotorMotion.stop())
 			&& target(motors) 
 			{
-				System.out.println("stop Worked!");
+				System.out.println("stop called!");
+				System.out.println("diff in left: " + Math.abs(motors.getLeftMotorPos() - this.prevLeftMotorPos) 
+									+ " at " + motors.getLeftMotorPos());
+				System.out.println("diff in right: " + Math.abs(motors.getRightMotorPos() - this.prevRightMotorPos) 
+									+ " at " + motors.getRightMotorPos());
+				//this.prevLeftMotorPos = motors.getLeftMotorPos();
+				//this.prevRightMotorPos = motors.getRightMotorPos() + motors.getSyncThresh() + 1;
+				this.go = false;
 			}
 	
-	//ltl: testEvent
-	//ltl: [](checkMotorsBefore => <> motorsInSync)
-	ltl: [](stopInSync => (*) checkMotorsBefore) 
+	ltl: [](stop => ((*) motorsInSync and (not motorsOutOfSync S checkMotorsBefore))) 
 	
 	@violation {
 		System.out.println("motors out of sync at line" + __LOC);
+		__RESET;
 	}
 }
