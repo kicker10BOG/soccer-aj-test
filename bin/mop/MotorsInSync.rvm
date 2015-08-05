@@ -8,28 +8,41 @@ MotorsInSync(SoccerMotorMotion motors) {
 	float prevLeftMotorPos = 0;
 
 	float prevRightMotorPos = 0;
+
+	Boolean go = false;
 	event checkMotorsBefore(SoccerMotorMotion motors){
 		System.out.println("go* called!");
 		this.prevLeftMotorPos = motors.getLeftMotorPos();
 		this.prevRightMotorPos = motors.getRightMotorPos();
+		this.go = true;
+	}
+	event motorsOutOfSync(SoccerMotorMotion motors){
+		if ( ! (Math.abs(Math.abs(motors.getLeftMotorPos() - this.prevLeftMotorPos) - Math.abs(motors.getRightMotorPos() - this.prevRightMotorPos)) > motors.getSyncThresh() || !this.go) ) {
+			return false;
+		}
+		{
+			System.out.println("stopped out of sync!");
+		}
 	}
 	event motorsInSync(SoccerMotorMotion motors){
-		if ( ! (Math.abs(Math.abs(motors.getLeftMotorPos() - this.prevLeftMotorPos) - Math.abs(motors.getRightMotorPos() - this.prevRightMotorPos)) < motors.getSyncThresh()) ) {
+		if ( ! (Math.abs(Math.abs(motors.getLeftMotorPos() - this.prevLeftMotorPos) - Math.abs(motors.getRightMotorPos() - this.prevRightMotorPos)) <= motors.getSyncThresh() && this.go) ) {
 			return false;
 		}
 		{
 			System.out.println("stopped in sync!");
-			System.out.println("diff in left: " + Math.abs(motors.getLeftMotorPos() - this.prevLeftMotorPos));
-			System.out.println("diff in right: " + Math.abs(motors.getRightMotorPos() - this.prevRightMotorPos));
 		}
 	}
-	event stopInSync(SoccerMotorMotion motors){
+	event stop(SoccerMotorMotion motors){
 		System.out.println("stop called!");
+		System.out.println("diff in left: " + Math.abs(motors.getLeftMotorPos() - this.prevLeftMotorPos) + " at " + motors.getLeftMotorPos());
+		System.out.println("diff in right: " + Math.abs(motors.getRightMotorPos() - this.prevRightMotorPos) + " at " + motors.getRightMotorPos());
+		this.go = false;
 	}
-	ltl:  [](stopInSync => (*) checkMotorsBefore)
+	ltl:  [](stop => ((*) motorsInSync and (not motorsOutOfSync S checkMotorsBefore)))
 
 	@violation
 	{
 		System.out.println("motors out of sync at line" + __LOC);
+		__RESET;
 	}
 }

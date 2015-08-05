@@ -1,0 +1,3 @@
+mop\BaseAspect.aj
+mop\MotorsInSyncMonitorAspect.aj
+notmop\SoccerMotorMotion.java
