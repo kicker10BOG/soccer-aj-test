@@ -1,4 +1,4 @@
-package notmop;
+package mop;
 
 public class SoccerMotorMotion {
 	

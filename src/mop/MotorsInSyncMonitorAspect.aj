@@ -1,10 +1,10 @@
 package mop;
 import java.io.*;
 import java.util.*;
-import notmop.SoccerMotorMotion;
 import java.util.concurrent.*;
 import java.util.concurrent.locks.*;
 import java.lang.ref.*;
+
 import com.runtimeverification.rvmonitor.java.rt.*;
 import com.runtimeverification.rvmonitor.java.rt.ref.*;
 import com.runtimeverification.rvmonitor.java.rt.table.*;
@@ -16,7 +16,9 @@ import com.runtimeverification.rvmonitor.java.rt.tablebase.IDisableHolder;
 import com.runtimeverification.rvmonitor.java.rt.tablebase.IMonitor;
 import com.runtimeverification.rvmonitor.java.rt.tablebase.DisableHolder;
 import com.runtimeverification.rvmonitor.java.rt.tablebase.TerminatedMonitorCleaner;
+
 import java.util.concurrent.atomic.AtomicInteger;
+
 import org.aspectj.lang.*;
 
 final class MotorsInSyncMonitor_Set extends com.runtimeverification.rvmonitor.java.rt.tablebase.AbstractMonitorSet<MotorsInSyncMonitor> {
