@@ -19,6 +19,8 @@ import com.runtimeverification.rvmonitor.java.rt.tablebase.TerminatedMonitorClea
 
 import java.util.concurrent.atomic.AtomicInteger;
 
+import notmop.SoccerMotorMotion;
+
 import org.aspectj.lang.*;
 
 final class MotorsInSyncMonitor_Set extends com.runtimeverification.rvmonitor.java.rt.tablebase.AbstractMonitorSet<MotorsInSyncMonitor> {
